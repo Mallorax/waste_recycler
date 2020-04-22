@@ -7,7 +7,7 @@ from network import Network
 
 trening_root = "D:\Data\Trainset\\"
 test_root = "D:\Data\Testset\\"
-classes = ('Inne', 'Makulatura', 'Plastik', 'Szklo')
+classes = ['Inne', 'Makulatura', 'Plastik', 'Szklo']
 trainset = torchvision.datasets.ImageFolder(root=trening_root,
                                             transform=transforms.ToTensor())
 trainingloader = torch.utils.data.DataLoader(trainset, batch_size=8,
@@ -21,18 +21,22 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=8,
 
 
 def main():
-    dataiter = iter(trainingloader)
-    images, labels = dataiter.next()
-    print(' '.join('%5s' % classes[labels[j]] for j in range(8)))
-    imshow(torchvision.utils.make_grid(images))
-    net = Network.Net(lr=0.01, epochs=1,
-                      training_data_loader=trainingloader, num_of_classes=4)
+    # dataiter = iter(trainingloader)
+    # images, labels = dataiter.next()
+    # print(' '.join('%5s' % classes[labels[j]] for j in range(8)))
+    # imshow(torchvision.utils.make_grid(images))
+    net = Network.Net(lr=0.01, epochs=1, classes=classes,
+                      training_data_loader=trainingloader,
+                      test_data_loader=testloader)
+    net.to(net.device)
     net._train()
+    plt.plot(net.loss_history)
     plt.savefig('loss_history.png')
     plt.show()
     plt.plot(net.acc_history)
     plt.savefig('acc_history.png')
     plt.show()
+    net._test()
 
 
 def imshow(img):

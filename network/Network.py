@@ -6,13 +6,14 @@ import torch.nn.functional as F
 
 
 class Net(nn.Module):
-    def __init__(self, lr, epochs, num_of_classes, training_data_loader):
+    def __init__(self, lr, epochs, classes, training_data_loader, test_data_loader):
         super(Net, self).__init__()
         # initializing variables
         self.lr = lr
         self.epochs = epochs
-        self.num_of_classes = num_of_classes
+        self.classes = classes
         self.training_data_loader = training_data_loader
+        self.test_data_loader = test_data_loader
         self.loss_history = []
         self.acc_history = []
         self.device = torch.device(
@@ -29,7 +30,7 @@ class Net(nn.Module):
         self.conv4 = nn.Conv2d(8, 10, 3, padding=1)
         self.bn4 = nn.BatchNorm2d(10)
         self.maxpool2 = nn.MaxPool2d(2)
-        self.fc1 = nn.Linear(self.calculate_input_dim(), self.num_of_classes)
+        self.fc1 = nn.Linear(self.calculate_input_dim(), len(self.classes))
         self.optimizer = optim.SGD(self.parameters(), lr=self.lr)
         self.loss = nn.CrossEntropyLoss()
         self.to(self.device)
@@ -84,9 +85,27 @@ class Net(nn.Module):
                 ep_loss += loss.item()
                 if j % 100 == 99:
                     print('Epoch %d, step %d, total loss %.3f accuracy %.3f' %
-                          (i, j + 1, ep_loss / 100, np.mean(ep_acc)))
+                          (i + 1, j + 1, ep_loss / 100, np.mean(ep_acc)))
                     self.loss_history.append(ep_loss / 100)
                     ep_loss = 0
+
+    def _test(self):
+        self.eval()
+        class_correct = list(0. for i in range(4))
+        class_total = list(0. for i in range(4))
+        for data in self.test_data_loader:
+            input, labels = data[0].to(self.device), data[1].to(self.device)
+            prediction = self.forward(input)
+            _, predicted = torch.max(prediction, 1)
+            c = (predicted == labels).squeeze()
+            for i in range(8):
+                label = labels[i]
+                class_correct[label] += c[i].item()
+                class_total[label] += 1
+
+        for i in range(4):
+            print('Accuracy of %5s : %2d %%' % (
+                self.classes[i], 100 * class_correct[i] / class_total[i]))
 
     def calculate_input_dim(self):
         batch_data = torch.zeros((1, 3, 256, 256))
