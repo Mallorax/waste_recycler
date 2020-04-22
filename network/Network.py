@@ -6,12 +6,15 @@ import torch.nn.functional as F
 
 
 class Net(nn.Module):
-    def __init__(self, lr, epochcs, num_of_classes):
+    def __init__(self, lr, epochs, num_of_classes, training_data_loader):
         super(Net, self).__init__()
         # initializing variables
         self.lr = lr
-        self.epochs = epochcs
+        self.epochs = epochs
         self.num_of_classes = num_of_classes
+        self.training_data_loader = training_data_loader
+        self.loss_history = []
+        self.acc_history = []
         self.device = torch.device(
             'cuda:0' if torch.cuda.is_available() else 'cpu')
         print(self.device)
@@ -23,7 +26,7 @@ class Net(nn.Module):
         self.maxpool1 = nn.MaxPool2d(2)
         self.conv3 = nn.Conv2d(6, 8, 3, padding=1)
         self.bn3 = nn.BatchNorm2d(8)
-        self.conv4 = nn.Conv2d(8, 10, padding=1)
+        self.conv4 = nn.Conv2d(8, 10, 3, padding=1)
         self.bn4 = nn.BatchNorm2d(10)
         self.maxpool2 = nn.MaxPool2d(2)
         self.fc1 = nn.Linear(self.calculate_input_dim(), self.num_of_classes)
@@ -57,6 +60,33 @@ class Net(nn.Module):
         batch_data = batch_data.view(batch_data.size()[0], -1)
         result = self.fc1(batch_data)
         return result
+
+    def _train(self):
+        self.train()
+        for i in range(self.epochs):
+            ep_loss = 0
+            ep_acc = []
+            for j, (input, label) in enumerate(self.training_data_loader):
+                self.optimizer.zero_grad()
+                label = label.to(self.device)
+                prediction = self.forward(input)
+                loss = self.loss(prediction, label)
+                prediction = F.softmax(prediction, dim=1)
+                classes = torch.argmax(prediction, dim=1)
+                wrong = torch.where(classes != label,
+                                    torch.tensor([1.]).to(self.device),
+                                    torch.tensor([0.]).to(self.device))
+                acc = 1 - torch.sum(wrong) / self.training_data_loader.batch_size
+                ep_acc.append(acc.item())
+                self.acc_history.append(np.mean(ep_acc))
+                loss.backward()
+                self.optimizer.step()
+                ep_loss += loss.item()
+                if j % 100 == 99:
+                    print('Epoch %d, step %d, total loss %.3f accuracy %.3f' %
+                          (i, j + 1, ep_loss / 100, np.mean(ep_acc)))
+                    self.loss_history.append(ep_loss / 100)
+                    ep_loss = 0
 
     def calculate_input_dim(self):
         batch_data = torch.zeros((1, 3, 256, 256))
