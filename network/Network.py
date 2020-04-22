@@ -25,7 +25,17 @@ class Net(nn.Module):
         self.conv4 = nn.Conv2d(8, 10, padding=1)
         self.bn4 = nn.BatchNorm2d(10)
         self.maxpool2 = nn.MaxPool2d(2)
-        self.fc1 = nn.Linear(calculate_input_dim(), self.num_of_classes)
+        self.fc1 = nn.Linear(self.calculate_input_dim(), self.num_of_classes)
         self.optimizer = optim.SGD(self.parameters(), lr=self.lr)
         self.loss = nn.CrossEntropyLoss()
         self.to(self.device)
+
+    def calculate_input_dim(self):
+        batch_data = torch.zeros((1, 3, 256, 256))
+        batch_data = self.conv1(batch_data)
+        batch_data = self.conv2(batch_data)
+        batch_data = self.maxpool1(batch_data)
+        batch_data = self.conv3(batch_data)
+        batch_data = self.conv4(batch_data)
+        batch_data = self.maxpool2(batch_data)
+        return int(np.prod(batch_data.size()))
