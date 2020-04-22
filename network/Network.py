@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 
 
 class Net(nn.Module):
@@ -29,6 +30,33 @@ class Net(nn.Module):
         self.optimizer = optim.SGD(self.parameters(), lr=self.lr)
         self.loss = nn.CrossEntropyLoss()
         self.to(self.device)
+
+    def forward(self, batch_data):
+        batch_data = torch.tensor(batch_data).to(self.device)
+
+        batch_data = self.conv1(batch_data)
+        batch_data = self.bn1(batch_data)
+        batch_data = F.relu(batch_data)
+
+        batch_data = self.conv2(batch_data)
+        batch_data = self.bn2(batch_data)
+        batch_data = F.relu(batch_data)
+
+        batch_data = self.maxpool1(batch_data)
+
+        batch_data = self.conv3(batch_data)
+        batch_data = self.bn3(batch_data)
+        batch_data = F.relu(batch_data)
+
+        batch_data = self.conv4(batch_data)
+        batch_data = self.bn4(batch_data)
+        batch_data = F.relu(batch_data)
+
+        batch_data = self.maxpool2(batch_data)
+
+        batch_data = batch_data.view(batch_data.size()[0], -1)
+        result = self.fc1(batch_data)
+        return result
 
     def calculate_input_dim(self):
         batch_data = torch.zeros((1, 3, 256, 256))
