@@ -67,9 +67,9 @@ class Net(nn.Module):
         for i in range(self.epochs):
             ep_loss = 0
             ep_acc = []
-            for j, (input, label) in enumerate(self.training_data_loader):
+            for j, data in enumerate(self.training_data_loader):
                 self.optimizer.zero_grad()
-                label = label.to(self.device)
+                input, label = data[0].to(self.device), data[1].to(self.device)
                 prediction = self.forward(input)
                 loss = self.loss(prediction, label)
                 prediction = F.softmax(prediction, dim=1)
@@ -84,7 +84,7 @@ class Net(nn.Module):
                 self.optimizer.step()
                 ep_loss += loss.item()
                 if j % 100 == 99:
-                    print('Epoch %d, step %d, total loss %.3f accuracy %.3f' %
+                    print('Epoch %d, step %d, average loss %.3f accuracy %.3f' %
                           (i + 1, j + 1, ep_loss / 100, np.mean(ep_acc)))
                     self.loss_history.append(ep_loss / 100)
                     ep_loss = 0
@@ -93,19 +93,24 @@ class Net(nn.Module):
         self.eval()
         class_correct = list(0. for i in range(4))
         class_total = list(0. for i in range(4))
+        correct = 0
+        total = 0
         for data in self.test_data_loader:
             input, labels = data[0].to(self.device), data[1].to(self.device)
             prediction = self.forward(input)
             _, predicted = torch.max(prediction, 1)
             c = (predicted == labels).squeeze()
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
             for i in range(8):
                 label = labels[i]
                 class_correct[label] += c[i].item()
                 class_total[label] += 1
 
         for i in range(4):
-            print('Accuracy of %5s : %2d %%' % (
-                self.classes[i], 100 * class_correct[i] / class_total[i]))
+            print('Accuracy of %5s : %.5f' % (
+                self.classes[i], class_correct[i] / class_total[i]))
+        print('Overall accuracy of the network: %d %%' % (100 * correct / total))
 
     def calculate_input_dim(self):
         batch_data = torch.zeros((1, 3, 256, 256))
