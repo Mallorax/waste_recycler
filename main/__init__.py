@@ -30,7 +30,7 @@ def main():
         print("Model detected, loading...")
         net = torch.load(model_path)
     else:
-        net = Network.Net(lr=0.001, epochs=15, classes=classes,
+        net = Network.Net(lr=0.001, epochs=20, classes=classes,
                           training_data_loader=training_loader,
                           test_data_loader=test_loader)
         net.to(net.device)
