@@ -21,10 +21,6 @@ test_loader = torch.utils.data.DataLoader(test_set, batch_size=8,
 
 
 def main():
-    # dataiter = iter(trainingloader)
-    # images, labels = dataiter.next()
-    # print(' '.join('%5s' % classes[labels[j]] for j in range(8)))
-    # imshow(torchvision.utils.make_grid(images))
     net = None
     if path.exists(model_path):
         print("Model detected, loading...")
