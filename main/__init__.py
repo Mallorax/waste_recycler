@@ -12,11 +12,11 @@ classes = ['Inne', 'Makulatura', 'Plastik', 'Szklo']
 model_path = "model.pt"
 train_set = torchvision.datasets.ImageFolder(root=training_root,
                                              transform=transforms.ToTensor())
-training_loader = torch.utils.data.DataLoader(train_set, batch_size=8,
+training_loader = torch.utils.data.DataLoader(train_set, batch_size=6,
                                               shuffle=True, num_workers=4)
 test_set = torchvision.datasets.ImageFolder(root=test_root,
                                             transform=transforms.ToTensor())
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=8,
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=6,
                                           shuffle=True, num_workers=4)
 
 
@@ -26,7 +26,7 @@ def main():
         print("Model detected, loading...")
         net = torch.load(model_path)
     else:
-        net = Network.Net(lr=0.001, epochs=20, classes=classes,
+        net = Network.Net(lr=0.001, epochs=25, classes=classes,
                           training_data_loader=training_loader,
                           test_data_loader=test_loader)
         net.to(net.device)

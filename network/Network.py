@@ -89,14 +89,15 @@ class Net(nn.Module):
         class_total = list(0. for i in range(4))
         correct = 0
         total = 0
-        for data in self.test_data_loader:
+        for j, data in enumerate(self.test_data_loader):
             input, labels = data[0].to(self.device), data[1].to(self.device)
             prediction = self.forward(input)
             _, predicted = torch.max(prediction, 1)
             c = (predicted == labels).squeeze()
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            for i in range(8):
+            for i in range(6):
+                print(labels.size())
                 label = labels[i]
                 class_correct[label] += c[i].item()
                 class_total[label] += 1
