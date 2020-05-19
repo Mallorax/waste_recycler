@@ -83,30 +83,6 @@ class Net(nn.Module):
             self.loss_history.append(np.mean(ep_loss))
             self.acc_history.append(np.mean(ep_acc))
 
-    def _test(self):
-        self.eval()
-        class_correct = list(0. for i in range(4))
-        class_total = list(0. for i in range(4))
-        correct = 0
-        total = 0
-        for j, data in enumerate(self.test_data_loader):
-            input, labels = data[0].to(self.device), data[1].to(self.device)
-            prediction = self.forward(input)
-            _, predicted = torch.max(prediction, 1)
-            c = (predicted == labels).squeeze()
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-            for i in range(6):
-                print(labels.size())
-                label = labels[i]
-                class_correct[label] += c[i].item()
-                class_total[label] += 1
-
-        for i in range(4):
-            print('Accuracy of %5s : %d %%' % (
-                self.classes[i], 100 * class_correct[i] / class_total[i]))
-        print('Overall accuracy of the network: %d %%' % (100 * correct / total))
-
     def calculate_input_dim(self):
         batch_data = torch.zeros((1, 3, 256, 256))
         batch_data = self.conv1(batch_data)
@@ -115,3 +91,26 @@ class Net(nn.Module):
         batch_data = self.conv3(batch_data)
         batch_data = self.maxpool2(batch_data)
         return int(np.prod(batch_data.size()))
+
+    def get_confusion_matrix(self, answers, guesses):
+        stacked = torch.stack((answers.long(),
+                               guesses.argmax(dim=1).long()), dim=1)
+        confusion_matrix = torch.zeros(4, 4, dtype=torch.int64)
+        for p in stacked:
+            t1, p1 = p.tolist()
+            confusion_matrix[t1, p1] = confusion_matrix[t1, p1] + 1
+
+        return confusion_matrix.numpy()
+
+    @torch.no_grad()
+    def _test(self):
+        self.eval()
+        correct_answers = torch.tensor([]).to(self.device).long()
+        answers = torch.tensor([]).to(self.device)
+        for data in self.test_data_loader:
+            input, labels = data[0].to(self.device), data[1].to(self.device).long()
+            correct_answers = torch.cat((correct_answers, labels), dim=0)
+            prediction = self.forward(input)
+            answers = torch.cat((answers, prediction), dim=0)
+
+        return self.get_confusion_matrix(correct_answers, answers)
