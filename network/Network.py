@@ -84,7 +84,7 @@ class Net(nn.Module):
             self.acc_history.append(np.mean(ep_acc))
 
     def calculate_input_dim(self):
-        batch_data = torch.zeros((1, 3, 256, 256))
+        batch_data = torch.zeros((1, 3, 128, 128))
         batch_data = self.conv1(batch_data)
         batch_data = self.maxpool1(batch_data)
         batch_data = self.conv2(batch_data)

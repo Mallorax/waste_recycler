@@ -7,8 +7,8 @@ from network import Network
 import os.path as path
 import itertools
 
-training_root = "D:\Data\\trainset\\"
-test_root = "D:\Data\\test\\"
+training_root = "D:\Data\\train\\"
+test_root = "D:\Data\\t\\"
 classes = ['Inne', 'Makulatura', 'Plastik', 'Szklo']
 model_path = "model.pt"
 train_set = torchvision.datasets.ImageFolder(root=training_root,
