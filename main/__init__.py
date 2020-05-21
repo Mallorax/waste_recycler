@@ -7,8 +7,8 @@ from network import Network
 import os.path as path
 import itertools
 
-training_root = "D:\Data\Trainset\\"
-test_root = "D:\Data\Testset\\"
+training_root = "D:\Data\\trainset\\"
+test_root = "D:\Data\\test\\"
 classes = ['Inne', 'Makulatura', 'Plastik', 'Szklo']
 model_path = "model.pt"
 train_set = torchvision.datasets.ImageFolder(root=training_root,
@@ -29,7 +29,7 @@ def main():
         print("Model detected, loading...")
         net = torch.load(model_path)
     else:
-        net = Network.Net(lr=0.001, epochs=25, classes=classes,
+        net = Network.Net(lr=0.001, epochs=30, classes=classes,
                           training_data_loader=training_data_loader,
                           test_data_loader=test_data_loader)
         net.to(net.device)
